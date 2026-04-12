@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: ${POSTGRES_DB_URL:jdbc:postgresql://localhost:5432/insurance?reWriteBatchedInserts=true}
+    username: ${POSTGRES_DB_USER:insurance_db_user}
+    password: ${POSTGRES_DB_PASS:insurance_db_pass}
+
+  data:
+    mongodb:
+      uri: ${MONGO_DB_URL:mongodb://insurance_db_user:insurance_db_pass@localhost:27017/insurance?authSource=insurance}
+
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: false
+
+  kafka:
+    producer:
+      properties:
+        auto.register.schemas: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.apache.kafka: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: INFO
