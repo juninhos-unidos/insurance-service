@@ -1,0 +1,364 @@
+openapi: 3.1.1
+
+info:
+  title: 'Insurance Management API'
+  description: 'API for managing insurance simulations and policy issuance'
+  version: 1.0.0
+
+servers:
+  - url: 'http://localhost:8081/api/v1'
+    description: 'Local Server'
+
+paths:
+  /insurance/customers/{customerId}/simulations:
+    get:
+      tags:
+        - Insurance
+      summary: 'Simulate insurance contract'
+      operationId: insuranceSimulationByCustomerId
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdParam'
+        - $ref: '#/components/parameters/InsuranceProductTypeParam'
+        - $ref: '#/components/parameters/InsuranceCoverageTypeParam'
+      responses:
+        '200':
+          description: 'Simulation completed successfully'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InsuranceSimulationResponse'
+        '400':
+          description: 'Invalid query parameters'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Customer not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 'Customer without residential address'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: 'Too many requests'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: 'Bad Gateway'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: 'Service Unavailable'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: 'Gateway Timeout'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /insurance/policies:
+    post:
+      tags:
+        - Insurance
+      summary: 'Issue insurance policy'
+      operationId: issueInsurancePolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsurancePolicyRequest'
+      responses:
+        '201':
+          description: 'Insurance policy issued successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsurancePolicyResponse'
+        '400':
+          description: 'Invalid request data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Customer or insurance offer not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 'Policy already issued for this insurance type'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: 'Too many requests'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: 'Bad Gateway'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: 'Service Unavailable'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: 'Gateway Timeout'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  parameters:
+    CustomerIdParam:
+      name: customerId
+      in: path
+      required: true
+      description: 'Customer identifier'
+      schema:
+        $ref: '#/components/schemas/CustomerId'
+
+    InsuranceProductTypeParam:
+      name: insuranceProductType
+      in: query
+      required: false
+      description: 'Insurance product type'
+      schema:
+        $ref: '#/components/schemas/InsuranceProductType'
+
+    InsuranceCoverageTypeParam:
+      name: insuranceCoverageType
+      in: query
+      required: false
+      description: 'Insurance coverage type'
+      schema:
+        $ref: '#/components/schemas/InsuranceCoverageType'
+
+  schemas:
+    InsuranceId:
+      type: integer
+      example: 1001
+      description: 'Unique identifier for the insurance product'
+
+    InsuranceCode:
+      type: string
+      example: 'MAX_LIFE_BRONZE_12M_50_60'
+      description: 'Business key of the insurance product'
+
+    InsuranceDescription:
+      type: string
+      example: 'Seguro de Vida Bronze Especial'
+      description: 'Detailed description of the insurance'
+
+    InsuranceProductType:
+      type: string
+      enum: [ MAX_LIFE, LOAN_PROTECTION, MONTHLY_LIFE ]
+      description: 'Insurance product type'
+
+    InsuranceProductStatusType:
+      type: string
+      enum: [ ACTIVE, INACTIVE, DISCONTINUED ]
+      description: 'Insurance product status'
+
+    InsuranceCoverageType:
+      type: string
+      enum: [ BRONZE, SILVER, GOLD ]
+      description: 'Insurance coverage type'
+
+    TermMonths:
+      type: integer
+      example: 12
+      description: 'Duration of the insurance in months'
+
+    MonetaryValue:
+      type: number
+      format: double
+      example: 34.00
+      description: 'Monetary value (price, premium, etc.)'
+
+    DiscountPercentage:
+      type: number
+      format: double
+      example: 15.0
+      description: 'Discount percentage applied'
+
+    InsuranceOfferId:
+      type: string
+      format: uuid
+      example: '550e8400-e29b-41d4-a716-446655440001'
+      description: 'Insurance offer identifier'
+
+    PolicyId:
+      type: integer
+      format: int64
+      example: 987654321
+      description: 'Insurance policy identifier'
+
+    InsurancePolicyStatusType:
+      type: string
+      enum: [ ACTIVE, CANCELLED, EXPIRED ]
+      description: 'Current status of the policy'
+
+    CustomerId:
+      type: integer
+      format: int64
+      example: 12345
+      description: 'Customer identifier'
+
+    CustomerName:
+      type: string
+      example: 'Edson Cândido'
+      description: 'Customer full name'
+
+    CustomerCpf:
+      type: string
+      example: '12345678901'
+      pattern: '^\d{11}$'
+      description: 'Customer CPF document'
+
+    CreatedAt:
+      type: string
+      format: date-time
+      description: 'Date and time creation'
+      readOnly: true
+      example: '2023-10-27T10:00:00Z'
+
+    UpdatedAt:
+      type: string
+      format: date-time
+      description: 'Date and time of the last update'
+      readOnly: true
+      example: '2023-10-27T11:30:00Z'
+
+    InsuranceOffer:
+      type: object
+      description: 'Details of a specific offer for an insurance product'
+      properties:
+        id:
+          $ref: '#/components/schemas/InsuranceOfferId'
+        description:
+          $ref: '#/components/schemas/InsuranceDescription'
+        discountPercentage:
+          $ref: '#/components/schemas/DiscountPercentage'
+        offerPrice:
+          $ref: '#/components/schemas/MonetaryValue'
+
+    InsuranceSimulationResponse:
+      type: object
+      description: 'Simulation result containing product details and the specific offer'
+      properties:
+        id:
+          $ref: '#/components/schemas/InsuranceId'
+        code:
+          $ref: '#/components/schemas/InsuranceCode'
+        description:
+          $ref: '#/components/schemas/InsuranceDescription'
+        type:
+          $ref: '#/components/schemas/InsuranceProductType'
+        coverage:
+          $ref: '#/components/schemas/InsuranceCoverageType'
+        termMonths:
+          $ref: '#/components/schemas/TermMonths'
+        defaultPrice:
+          $ref: '#/components/schemas/MonetaryValue'
+        status:
+          $ref: '#/components/schemas/InsuranceProductStatusType'
+        insuranceOffers:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsuranceOffer'
+
+    InsurancePolicyRequest:
+      type: object
+      description: 'Data required to issue a new insurance policy'
+      required: [ customerId, insuranceId ]
+      properties:
+        customerId:
+          $ref: '#/components/schemas/CustomerId'
+        insuranceId:
+          $ref: '#/components/schemas/InsuranceId'
+        insuranceOfferId:
+          $ref: '#/components/schemas/InsuranceOfferId'
+
+    InsurancePolicyResponse:
+      type: object
+      description: 'Details of the issued insurance policy'
+      properties:
+        id:
+          $ref: '#/components/schemas/PolicyId'
+        customerName:
+          $ref: '#/components/schemas/CustomerName'
+        customerCpf:
+          $ref: '#/components/schemas/CustomerCpf'
+        insuranceDescription:
+          $ref: '#/components/schemas/InsuranceDescription'
+        insuranceOfferDescription:
+          $ref: '#/components/schemas/InsuranceDescription'
+        premiumAmount:
+          $ref: '#/components/schemas/MonetaryValue'
+        startDate:
+          type: string
+          format: date-time
+          description: 'Policy start validity date'
+        endDate:
+          type: string
+          format: date-time
+          description: 'Policy end validity date'
+        status:
+          $ref: '#/components/schemas/InsurancePolicyStatusType'
+        createdAt:
+          $ref: '#/components/schemas/CreatedAt'
+        updatedAt:
+          $ref: '#/components/schemas/UpdatedAt'
+
+    ErrorResponse:
+      type: object
+      description: 'Standard error response schema'
+      properties:
+        message:
+          type: string
+          description: 'Error description'
+        details:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+          description: 'Additional error details'
